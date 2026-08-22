@@ -68,6 +68,17 @@ test("current clue references match names and singular or plural professions", (
   assert.deepEqual(core.referencedCoordinates(cards, "B1"), []);
 });
 
+test("mechs references every card with the mech profession", () => {
+  const cards = [
+    { coordinate: "A1", name: "joyce", profession: "mech", clue: "2 mechs have an innocent directly above them." },
+    { coordinate: "B1", name: "rob", profession: "mech", clue: "" },
+    { coordinate: "C1", name: "will", profession: "mech", clue: "" },
+    { coordinate: "D1", name: "ana", profession: "guard", clue: "" }
+  ];
+
+  assert.deepEqual(core.referencedCoordinates(cards, "A1"), ["A1", "B1", "C1"]);
+});
+
 test("editable controls are detected", () => {
   assert.equal(core.isEditable({ tagName: "INPUT" }), true);
   assert.equal(core.isEditable({ tagName: "div", isContentEditable: true }), true);

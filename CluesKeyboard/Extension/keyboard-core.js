@@ -60,7 +60,8 @@
     const value = String(term || "").trim();
     if (!value) return [];
     const forms = [value];
-    if (/[^aeiou]y$/i.test(value)) forms.push(`${value.slice(0, -1)}ies`);
+    if (/mech$/i.test(value)) forms.push(`${value}s`);
+    else if (/[^aeiou]y$/i.test(value)) forms.push(`${value.slice(0, -1)}ies`);
     else if (/(s|sh|ch|x|z)$/i.test(value)) forms.push(`${value}es`);
     else forms.push(`${value}s`);
     return forms;
