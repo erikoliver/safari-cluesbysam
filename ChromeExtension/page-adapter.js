@@ -1,0 +1,1 @@
+../CluesKeyboard/Extension/page-adapter.js

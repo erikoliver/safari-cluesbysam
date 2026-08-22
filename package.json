@@ -4,7 +4,8 @@
   "private": true,
   "description": "Tests and validation for the Clues by Sam Safari keyboard extension",
   "scripts": {
-    "check": "node --check CluesKeyboard/Extension/keyboard-core.js && node --check CluesKeyboard/Extension/content.js && node --check CluesKeyboard/Extension/page-adapter.js && npm test",
+    "check": "node --check CluesKeyboard/Extension/keyboard-core.js && node --check CluesKeyboard/Extension/content.js && node --check CluesKeyboard/Extension/page-adapter.js && node --check ChromeExtension/keyboard-core.js && node --check ChromeExtension/content.js && node --check ChromeExtension/page-adapter.js && npm test",
+    "package:chrome": "zsh scripts/package-chrome.zsh",
     "test": "node --test Tests/*.test.js"
   },
   "license": "Apache-2.0",
