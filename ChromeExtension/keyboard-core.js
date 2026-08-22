@@ -1,0 +1,1 @@
+../CluesKeyboard/Extension/keyboard-core.js

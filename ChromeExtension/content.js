@@ -1,0 +1,1 @@
+../CluesKeyboard/Extension/content.js

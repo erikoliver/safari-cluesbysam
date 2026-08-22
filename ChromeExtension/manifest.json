@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Clues by Sam Keyboard",
+  "description": "Keyboard controls for Clues by Sam puzzles.",
+  "version": "1.0.2",
+  "icons": {
+    "16": "icons/person-keyboard-16.png",
+    "32": "icons/person-keyboard-32.png",
+    "48": "icons/person-keyboard-48.png",
+    "128": "icons/person-keyboard-128.png"
+  },
+  "permissions": [],
+  "host_permissions": [
+    "https://cluesbysam.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "page-adapter.js"
+      ],
+      "matches": [
+        "https://cluesbysam.com/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://cluesbysam.com/*"
+      ],
+      "js": [
+        "keyboard-core.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
