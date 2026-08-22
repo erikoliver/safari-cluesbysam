@@ -2,7 +2,7 @@
 
 #grid.card-grid .card-container[data-clues-keyboard-current-container="true"] {
   position: relative;
-  z-index: 1000;
+  z-index: 1;
 }
 
 #grid.card-grid .card[data-clues-keyboard-current="true"] {

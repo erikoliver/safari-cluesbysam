@@ -31,18 +31,38 @@ function environment() {
 }
 
 test("card activation dispatches a centered click", () => {
-  const { controller } = environment();
-  let click;
+  const { controller, dispatched } = environment();
+  const cardEvents = [];
   const element = {
     getBoundingClientRect: () => ({ left: 10, top: 20, width: 100, height: 160 }),
-    dispatchEvent: (event) => { click = event; }
+    dispatchEvent: (event) => { cardEvents.push(event); }
   };
   controller.currentCard = () => ({ coordinate: "A1", element });
   assert.equal(controller.activateCurrentCard(), true);
+  const click = cardEvents.at(-1);
+  assert.deepEqual(cardEvents.map((event) => event.type), ["pointerdown", "click"]);
+  assert.equal(dispatched.at(-1).type, "pointerup");
   assert.equal(click.type, "click");
   assert.equal(click.clientX, 60);
   assert.equal(click.clientY, 100);
   assert.equal(click.bubbles, true);
+});
+
+test("card activation clears click suppression left by a tag long-press", () => {
+  const { controller } = environment();
+  let suppressClick = true;
+  let activated = false;
+  const element = {
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 100, height: 160 }),
+    dispatchEvent(event) {
+      if (event.type === "pointerdown") suppressClick = false;
+      if (event.type === "click" && !suppressClick) activated = true;
+    }
+  };
+  controller.currentCard = () => ({ coordinate: "A1", element });
+
+  assert.equal(controller.activateCurrentCard(), true);
+  assert.equal(activated, true);
 });
 
 test("pointer selection synchronizes logical and DOM focus", () => {

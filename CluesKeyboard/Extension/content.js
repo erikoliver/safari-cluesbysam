@@ -308,12 +308,22 @@
       const card = this.currentCard()?.element;
       if (!card) return false;
       const rect = card.getBoundingClientRect();
+      const pointerId = 9842;
+      const clientX = rect.left + rect.width / 2;
+      const clientY = rect.top + rect.height / 2;
+      const restoreCapture = this.shimPointerCapture(card);
+      try {
+        card.dispatchEvent(this.pointerEvent("pointerdown", pointerId, clientX, clientY, 1));
+        this.window.dispatchEvent(this.pointerEvent("pointerup", pointerId, clientX, clientY, 0));
+      } finally {
+        restoreCapture();
+      }
       const event = new this.window.MouseEvent("click", {
         bubbles: true,
         cancelable: true,
         composed: true,
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
+        clientX,
+        clientY,
         view: this.window
       });
       card.dispatchEvent(event);
