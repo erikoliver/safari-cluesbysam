@@ -1,0 +1,40 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode build products
+build/
+dist/
+DerivedData/
+*.xcarchive
+*.dSYM
+*.dSYM.zip
+*.hmap
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcuserdatad
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# Dependency managers
+Pods/
+Carthage/Build/
+
+# Local Safari/Web Inspector data
+*.safariextension/
+*.safariextz
+.webkit-inspector/
+
+# JavaScript dependencies and test output
+node_modules/
+coverage/
+npm-debug.log*

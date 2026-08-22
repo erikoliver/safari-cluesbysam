@@ -1,0 +1,14 @@
+{
+  "name": "clues-by-sam-keyboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests and validation for the Clues by Sam Safari keyboard extension",
+  "scripts": {
+    "check": "node --check CluesKeyboard/Extension/keyboard-core.js && node --check CluesKeyboard/Extension/content.js && node --check CluesKeyboard/Extension/page-adapter.js && npm test",
+    "test": "node --test Tests/*.test.js"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
