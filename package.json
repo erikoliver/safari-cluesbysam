@@ -1,6 +1,6 @@
 {
   "name": "clues-by-sam-keyboard",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Tests and validation for the Clues by Sam Safari keyboard extension",
   "scripts": {
