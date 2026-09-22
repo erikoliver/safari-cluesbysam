@@ -25,6 +25,20 @@
     0 0 0 9px rgba(0, 0, 0, 0.72) !important;
 }
 
+/* Spatial rings sit inside the yellow reference ring when both apply. */
+#grid.card-grid .card[data-clues-keyboard-spatial="true"] {
+  --clues-spatial-ring: inset 0 0 0 2px #8b9eae;
+  box-shadow: var(--clues-spatial-ring) !important;
+}
+
+#grid.card-grid .card[data-clues-keyboard-spatial="true"][data-clues-keyboard-referenced="true"] {
+  --clues-spatial-ring: inset 0 0 0 4px #ffd43b, inset 0 0 0 6px rgba(55, 38, 0, 0.72), inset 0 0 0 8px #8b9eae;
+}
+
+#grid.card-grid .card[data-clues-keyboard-spatial="true"][data-clues-keyboard-current="true"] {
+  box-shadow: var(--clues-spatial-ring), 0 0 0 7px #1264a3, 0 0 0 9px rgba(0, 0, 0, 0.72) !important;
+}
+
 .clues-keyboard-active-indicator {
   position: fixed;
   right: 18px;
@@ -74,6 +88,12 @@
 .clues-keyboard-help dt { font-weight: 700; }
 .clues-keyboard-help dd { margin: 0; }
 .clues-keyboard-help button { margin-top: 20px; min-width: 100px; min-height: 36px; }
+.clues-keyboard-help .clues-keyboard-version { margin: 8px 0 0; font-size: 11px; opacity: 0.65; }
+.clues-keyboard-settings { margin: 20px 0 0; padding: 12px; border: 1px solid currentColor; border-radius: 6px; }
+.clues-keyboard-settings label { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 4px 0; cursor: pointer; }
+.clues-keyboard-settings input { width: 18px; height: 18px; }
+.clues-keyboard-settings-status { font-size: 13px; }
+.clues-keyboard-settings-status:empty { display: none; }
 
 @media (prefers-color-scheme: dark) {
   .clues-keyboard-help { color: #f5f5f5; background: #202124; }
