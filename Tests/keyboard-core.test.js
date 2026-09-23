@@ -190,6 +190,31 @@ test('neighboring and directional constraints intersect within the same group', 
   assert.deepEqual(core.spatialCoordinates(cards, 'D5'), ['A1', 'B1', 'C1', 'A2', 'C2', 'A3', 'B3', 'C3', 'A4', 'A5']);
 });
 
+test('also applies another spatial condition to the same group, including counted neighbors', () => {
+  const cards = spatialBoard('');
+  cards[6].name = 'Gabe';
+  cards[9].name = 'Kevin';
+  cards[10].name = 'Logan';
+  cards[13].name = 'Olivia';
+  const cases = [
+    ['Exactly 2 of my 4 innocent neighbors also neighbor Gabe', ['B3', 'C3']],
+    ['My neighbors also neighbor Gabe.', ['B3', 'C3']],
+    ['Two of my four criminal neighbours also neighbour Gabe.', ['B3', 'C3']],
+    ["Two of Olivia’s four innocent neighbors also neighbor Gabe.", ['B3', 'C3']],
+    ['The neighbors of Olivia also neighbor Gabe.', ['B3', 'C3']],
+    ['My 4 innocent neighbors are also below Gabe.', ['C3', 'C4', 'C5']],
+    ['My four neighbors also neighbor Gabe and are in column B.', ['B3']],
+    ['The people in row 4 also neighbor Gabe.', []],
+    ['The people in row 3 also neighbor Gabe.', ['B3', 'C3', 'D3']],
+    ['The people in row 3 also are in column B.', ['B3']],
+    ['The people in row 3 are innocent. Also, the people in row 1 are innocent.', ['A1', 'B1', 'C1', 'D1', 'A3', 'B3', 'C3', 'D3']]
+  ];
+  for (const [clue, expected] of cases) {
+    cards[13].clue = clue;
+    assert.deepEqual(core.spatialCoordinates(cards, 'B4'), expected, clue);
+  }
+});
+
 test('all spatial types compose as intersections within one described group', () => {
   const cases = [
     ['The innocents in row 2 neighbor Alice.', ['B2', 'A2']],

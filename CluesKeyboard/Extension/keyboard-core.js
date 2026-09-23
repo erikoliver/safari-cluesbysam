@@ -156,6 +156,9 @@
       record(match, (card) => columns.includes(card.coordinate[0]));
     }
 
+    // Counts and status words describe the neighbors without changing their
+    // geometric set. Keep that set available for subsequent intersections.
+    const neighborModifiers = "(?:(?:\\d+|zero|one|two|three|four|five|six|seven|eight|no|some|an?|exactly|only|innocent|criminal|common|shared)\\s+)*";
     const names = cards.map((card) => String(card.name || "").trim()).filter(Boolean)
       .map((name) => name.charAt(0).toUpperCase() + name.slice(1));
     const namePattern = names.sort((a, b) => b.length - a.length).map(escapeRegExp).join("|");
@@ -198,8 +201,8 @@
       const neighbor = "neighbou?rs?";
       const patterns = [
         { pattern: `\\b(?:(?:common|shared)\\s+)?${neighbor}\\s+of\\s+(${people})`, common: false },
-        { pattern: `(?<![\\p{L}\\p{N}])(${people})\\s+(?:(?:common|shared)\\s+)?${neighbor}`, common: false },
-        { pattern: `(?<![\\p{L}\\p{N}])(${people})\\s+(?:share|shares|have|has)\\s+(?:(?:\\d+|one|two|three|four|five|six|seven|eight|no|some|an?|exactly|only|innocent|criminal|common|shared)\\s+)*${neighbor}`, common: false },
+        { pattern: `(?<![\\p{L}\\p{N}])(${people})\\s+${neighborModifiers}${neighbor}`, common: false },
+        { pattern: `(?<![\\p{L}\\p{N}])(${people})\\s+(?:share|shares|have|has)\\s+${neighborModifiers}${neighbor}`, common: false },
         // A person neighboring X and Y must neighbor both, unlike a list of their neighbors.
         { pattern: `\\bneighbou?r(?:ing|s)?\\s+(${people})`, common: true }
       ];
@@ -211,10 +214,11 @@
         }
       }
     }
-    for (const match of clue.matchAll(/\bmy\s+(?:(?:innocent|criminal)\s+)?neighbou?rs?\b/gi)) {
+    for (const match of clue.matchAll(new RegExp(`\\bmy\\s+${neighborModifiers}neighbou?rs?\\b`, "gi"))) {
       recordNeighbors(match, cards.filter((card) => card.coordinate === currentCoordinate), false);
     }
 
+    // "Also" adds a condition to the same group: intersect, never union.
     // All spatial types use this same intersection step. "Or", comparisons,
     // sentence boundaries, and new subjects/counts start separate groups.
     constraints.sort((a, b) => a.start - b.start || b.end - a.end);
