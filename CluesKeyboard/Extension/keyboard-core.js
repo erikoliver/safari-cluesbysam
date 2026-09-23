@@ -85,8 +85,28 @@
   function referencedCoordinates(cards, currentCoordinate) {
     const clue = cards.find((card) => card.coordinate === currentCoordinate)?.clue;
     if (!clue) return [];
+    const groups = spatialGroups(cards, currentCoordinate);
+    const professions = new Set();
+    for (const profession of new Set(cards.map((card) => card.profession).filter(Boolean))) {
+      const terms = pluralForms(profession).map(escapeRegExp).join("|");
+      const pattern = new RegExp(`(?<![\\p{L}\\p{N}])(?:${terms})(?![\\p{L}\\p{N}])`, "giu");
+      for (const match of clue.matchAll(pattern)) {
+        const end = match.index + match[0].length;
+        // Attach only adjacent modifiers. A new subject, sentence, or comparison
+        // must not borrow another group's spatial restriction.
+        const attached = groups.filter((group) =>
+          (group.start >= end && /^\s*(?:(?:who|that|which)\s+(?:are|is)\s+)?(?:(?:in|on|at|the)\s+)*$/i.test(clue.slice(end, group.start))) ||
+          (group.end <= match.index && /^\s+(?:(?:who|that|which)\s+(?:are|is)\s+)?(?:(?:innocent|criminal)\s+)*$/i.test(clue.slice(group.end, match.index)))
+        );
+        for (const card of cards) {
+          if (card.profession === profession && attached.every((group) => group.coordinates.has(card.coordinate))) {
+            professions.add(card.coordinate);
+          }
+        }
+      }
+    }
     return cards
-      .filter((card) => textReferencesName(clue, card.name) || textReferencesTerm(clue, card.profession, true))
+      .filter((card) => textReferencesName(clue, card.name) || professions.has(card.coordinate))
       .map((card) => card.coordinate);
   }
 
@@ -99,6 +119,11 @@
   // Parse spatial sets first, then intersect conditions describing the same group.
   // These are geometric highlights, not deductions about innocence or guilt.
   function spatialCoordinates(cards, currentCoordinate) {
+    const selected = new Set(spatialGroups(cards, currentCoordinate).flatMap((group) => [...group.coordinates]));
+    return cards.filter((card) => selected.has(card.coordinate)).map((card) => card.coordinate);
+  }
+
+  function spatialGroups(cards, currentCoordinate) {
     const clue = cards.find((card) => card.coordinate === currentCoordinate)?.clue || "";
     const constraints = [];
     const record = (match, predicate) => constraints.push({
@@ -193,24 +218,25 @@
     // All spatial types use this same intersection step. "Or", comparisons,
     // sentence boundaries, and new subjects/counts start separate groups.
     constraints.sort((a, b) => a.start - b.start || b.end - a.end);
-    const selected = new Set();
+    const groups = [];
     let group = null;
     let previousEnd = -1;
-    const flush = () => { if (group) for (const coordinate of group) selected.add(coordinate); };
+    const flush = () => { if (group) groups.push(group); };
     const sameGroup = /^\s*(?:,\s*)?(?:(?:and|also|both|are|is|that|who|which|in|on|at|of|the)\s+)*$/i;
     for (const constraint of constraints) {
       if (constraint.start < previousEnd) continue; // Prefer the full phrase over nested matches.
       const connector = clue.slice(previousEnd, constraint.start);
       if (group && sameGroup.test(connector)) {
-        group = new Set([...group].filter((coordinate) => constraint.coordinates.has(coordinate)));
+        group.coordinates = new Set([...group.coordinates].filter((coordinate) => constraint.coordinates.has(coordinate)));
+        group.end = constraint.end;
       } else {
         flush();
-        group = constraint.coordinates;
+        group = { ...constraint };
       }
       previousEnd = constraint.end;
     }
     flush();
-    return cards.filter((card) => selected.has(card.coordinate)).map((card) => card.coordinate);
+    return groups;
   }
 
   return {

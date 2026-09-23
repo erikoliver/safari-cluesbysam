@@ -18,7 +18,7 @@ When the extension detects a puzzle grid, it shows a persistent **Clues keyboard
 
 The extension puts a yellow inner ring on each card that the current clue references. The reference can be a name or profession. The current card keeps its white-and-blue focus ring. If the clue references its own card, both rings appear.
 
-The `trial/neighbor-rings` branch adds thinner gray-blue rings for spatial references in version 1.0.6, build 7. These rings mark neighbors, corners, named rows and columns, and directional ranges. If a card has both highlights, the gray-blue ring sits inside the yellow ring.
+The `trial/neighbor-rings` branch adds thinner gray-blue rings for spatial references in version 1.0.7, build 8. These rings mark neighbors, corners, named rows and columns, and directional ranges. If a card has both highlights, the gray-blue ring sits inside the yellow ring.
 
 Supported examples include “neighbors of Alice and Bob,” “Alice’s neighbors,” “my neighbors,” “Row 2,” and “Column B.” Common or shared neighbors highlight only the overlap. “Below Alice and above Bob” highlights cards that satisfy both directions. Left and right references work the same way. “Directly” limits a direction to the adjacent card. “Between Alice and Bob” excludes both endpoints in the same row or column.
 

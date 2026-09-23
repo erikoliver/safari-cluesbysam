@@ -94,6 +94,33 @@ function spatialBoard(clue) {
 }
 const spatial = (clue) => core.spatialCoordinates(spatialBoard(clue), 'D5');
 
+test('profession references respect attached spatial qualifiers and preserve named anchors', () => {
+  const cards = spatialBoard('');
+  for (const card of cards) card.profession = ['B2', 'C2', 'C3', 'A5'].includes(card.coordinate) ? 'guard' : 'cook';
+  const cases = [
+    ['There are no innocent guards in row 2.', ['B2', 'C2']],
+    ['The guards in column C are innocent.', ['C2', 'C3']],
+    ['The guards in rows 2 and 3 are innocent.', ['B2', 'C2', 'C3']],
+    ['The guards in row 2 and column C are innocent.', ['C2']],
+    ['The guards in row 4 are innocent.', []],
+    ['The guards at the corners are innocent.', ['A5']],
+    ['The guards neighboring Alice are innocent.', ['A1', 'B2']],
+    ['The guards below Carol and above Sue are innocent.', ['C1', 'C2', 'C3', 'C5']],
+    ['The guards between Carol and Sue are innocent.', ['C1', 'C2', 'C3', 'C5']],
+    ['The guards who are in row 2 are innocent.', ['B2', 'C2']],
+    ['Row 2 guards are innocent.', ['B2', 'C2']],
+    ['There are no innocent guards in row 2. Kate is innocent.', ['B2', 'C2', 'C3']],
+    ['Guards in row 2 and guards in row 3 are innocent.', ['B2', 'C2', 'C3']],
+    ['Guards are innocent. Row 2 has two criminals.', ['B2', 'C2', 'C3', 'A5']],
+    ['Guards in row 2 know the guards.', ['B2', 'C2', 'C3', 'A5']],
+    ['Guards in row 2 and cooks in row 5 are innocent.', ['B2', 'C2', 'B5', 'C5', 'D5']]
+  ];
+  for (const [clue, expected] of cases) {
+    cards[19].clue = clue;
+    assert.deepEqual(core.referencedCoordinates(cards, 'D5'), expected, clue);
+  }
+});
+
 test('neighbor rings include diagonals without wrapping or including the anchor itself', () => {
   assert.deepEqual(spatial('The neighbors of Alice are innocent.'), ['B1', 'A2', 'B2']);
   assert.equal(spatial("Fred’s neighbors are innocent.").length, 8);
