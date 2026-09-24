@@ -28,13 +28,19 @@
       this.tagGestureActive = false;
       this.pageAdapterReady = false;
       this.observer = null;
+      this.settings = { referenceRings: true, spatialRings: true };
+      this.changedSettings = new Set();
+      this.settingsWrite = Promise.resolve();
 
       this.onKeyDown = this.onKeyDown.bind(this);
       this.onPointerDown = this.onPointerDown.bind(this);
       this.onMutations = this.onMutations.bind(this);
+      this.onSettingsChanged = this.onSettingsChanged.bind(this);
     }
 
     start() {
+      this.extensionStorage()?.onChanged.addListener(this.onSettingsChanged);
+      this.loadSettings();
       this.injectPageAdapter();
       this.document.addEventListener("keydown", this.onKeyDown, true);
       this.document.addEventListener("pointerdown", this.onPointerDown, true);
@@ -65,10 +71,65 @@
     }
 
     stop() {
+      this.extensionStorage()?.onChanged.removeListener(this.onSettingsChanged);
       this.document.removeEventListener("keydown", this.onKeyDown, true);
       this.document.removeEventListener("pointerdown", this.onPointerDown, true);
       this.observer?.disconnect();
       this.document.querySelector(`.${ACTIVE_INDICATOR_CLASS}`)?.remove();
+    }
+
+    extensionStorage() {
+      return this.window.browser?.storage || this.window.chrome?.storage;
+    }
+
+    async loadSettings() {
+      try {
+        const saved = await this.extensionStorage()?.local.get(Object.keys(this.settings));
+        for (const key of Object.keys(this.settings)) {
+          if (!this.changedSettings.has(key)) this.settings[key] = saved?.[key] !== false;
+        }
+        this.syncSettingsControls();
+        this.refresh();
+      } catch {
+        // Keep the enabled defaults if storage is temporarily unavailable.
+      }
+    }
+
+    onSettingsChanged(changes, area) {
+      if (area !== "local") return;
+      for (const key of Object.keys(this.settings)) {
+        if (!Object.prototype.hasOwnProperty.call(changes, key)) continue;
+        this.changedSettings.add(key);
+        this.settings[key] = changes[key].newValue !== false;
+      }
+      this.syncSettingsControls();
+      this.refresh();
+    }
+
+    syncSettingsControls() {
+      const overlay = this.helpOverlay();
+      if (!overlay) return;
+      for (const [key, enabled] of Object.entries(this.settings)) {
+        const control = overlay.querySelector(`[data-clues-setting="${key}"]`);
+        if (control) control.checked = enabled;
+      }
+    }
+
+    setSetting(key, enabled) {
+      if (!Object.prototype.hasOwnProperty.call(this.settings, key)) return Promise.resolve();
+      this.changedSettings.add(key);
+      this.settings[key] = enabled;
+      this.syncSettingsControls();
+      this.refresh();
+      this.settingsWrite = this.settingsWrite.then(async () => {
+        const storage = this.extensionStorage();
+        if (!storage) throw new Error("Extension storage unavailable");
+        await storage.local.set({ [key]: enabled });
+      }).catch(() => {
+        const status = this.helpOverlay()?.querySelector(".clues-keyboard-settings-status");
+        if (status) status.textContent = "Could not save settings. Please try again.";
+      });
+      return this.settingsWrite;
     }
 
     onMutations() {
@@ -150,7 +211,8 @@
       }
 
       const references = new Set(core.referencedCoordinates(cards, this.currentCoordinate));
-      for (const card of cards) this.decorateCard(card, references.has(card.coordinate));
+      const spatial = new Set(core.spatialCoordinates(cards, this.currentCoordinate));
+      for (const card of cards) this.decorateCard(card, references.has(card.coordinate), spatial.has(card.coordinate));
 
       if (!this.hasMovedInitialFocus && !this.siteModal() && !this.helpOverlay()) {
         this.focusCurrent();
@@ -165,7 +227,7 @@
       }
     }
 
-    decorateCard(card, referenced = false) {
+    decorateCard(card, referenced = false, spatial = false) {
       const { element, coordinate, revealed, name, profession } = card;
       if (!element.hasAttribute("role")) element.setAttribute("role", "button");
       if (!element.hasAttribute("aria-label") || element.dataset.cluesKeyboardLabel === "true") {
@@ -182,8 +244,10 @@
         delete element.dataset.cluesKeyboardCurrent;
         if (element.parentElement) delete element.parentElement.dataset.cluesKeyboardCurrentContainer;
       }
-      if (referenced) element.dataset.cluesKeyboardReferenced = "true";
+      if (referenced && this.settings.referenceRings) element.dataset.cluesKeyboardReferenced = "true";
       else delete element.dataset.cluesKeyboardReferenced;
+      if (spatial && this.settings.spatialRings) element.dataset.cluesKeyboardSpatial = "true";
+      else delete element.dataset.cluesKeyboardSpatial;
     }
 
     setCurrent(coordinate, focus = true) {
@@ -191,6 +255,7 @@
       this.currentCoordinate = coordinate;
       const cards = this.cards();
       const references = new Set(core.referencedCoordinates(cards, coordinate));
+      const spatial = new Set(core.spatialCoordinates(cards, coordinate));
       for (const card of cards) {
         const current = card.coordinate === coordinate;
         card.element.tabIndex = current ? 0 : -1;
@@ -201,8 +266,10 @@
           delete card.element.dataset.cluesKeyboardCurrent;
           if (card.element.parentElement) delete card.element.parentElement.dataset.cluesKeyboardCurrentContainer;
         }
-        if (references.has(card.coordinate)) card.element.dataset.cluesKeyboardReferenced = "true";
+        if (this.settings.referenceRings && references.has(card.coordinate)) card.element.dataset.cluesKeyboardReferenced = "true";
         else delete card.element.dataset.cluesKeyboardReferenced;
+        if (this.settings.spatialRings && spatial.has(card.coordinate)) card.element.dataset.cluesKeyboardSpatial = "true";
+        else delete card.element.dataset.cluesKeyboardSpatial;
       }
       if (focus) this.focusCurrent();
       return true;
@@ -223,7 +290,7 @@
     }
 
     onKeyDown(event) {
-      if (event.metaKey || event.ctrlKey || event.altKey || core.isEditable(this.document.activeElement)) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
 
       if (this.helpOverlay()) {
         if (event.key === "Escape") {
@@ -233,6 +300,8 @@
         }
         return;
       }
+
+      if (core.isEditable(this.document.activeElement)) return;
 
       if (event.key === "?" || (event.code === "Slash" && event.shiftKey)) {
         event.preventDefault();
@@ -449,12 +518,30 @@
             <dt>?</dt><dd>Open this keyboard shortcut list</dd>
             <dt>Escape</dt><dd>Close a dialog or this keyboard shortcut list</dd>
           </dl>
+          <fieldset class="clues-keyboard-settings">
+            <legend>Settings</legend>
+            <label>Reference rings (yellow) <input type="checkbox" data-clues-setting="referenceRings"></label>
+            <label>Spatial rings (grey) <input type="checkbox" data-clues-setting="spatialRings"></label>
+          </fieldset>
+          <p class="clues-keyboard-settings-status" role="status"></p>
           <button type="button">Close</button>
+          <p class="clues-keyboard-version"></p>
         </section>`;
+      const runtime = this.window.browser?.runtime || this.window.chrome?.runtime;
+      const version = runtime?.getManifest?.().version;
+      overlay.querySelector(".clues-keyboard-version").textContent = version ? `Version ${version}` : "Version unavailable";
+      overlay.addEventListener("change", (event) => {
+        const key = event.target?.dataset?.cluesSetting;
+        if (key) {
+          overlay.querySelector(".clues-keyboard-settings-status").textContent = "";
+          this.setSetting(key, event.target.checked);
+        }
+      });
       overlay.addEventListener("click", (event) => {
         if (event.target === overlay || event.target.closest("button")) this.closeHelp();
       });
       this.document.body.appendChild(overlay);
+      this.syncSettingsControls();
       overlay.querySelector("button").focus();
     }
 

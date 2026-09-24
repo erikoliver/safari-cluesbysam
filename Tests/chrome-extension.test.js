@@ -13,7 +13,7 @@ test("Chrome manifest uses the expected Manifest V3 permissions and resources", 
   const manifest = JSON.parse(fs.readFileSync(path.join(chromeRoot, "manifest.json"), "utf8"));
 
   assert.equal(manifest.manifest_version, 3);
-  assert.deepEqual(manifest.permissions, []);
+  assert.deepEqual(manifest.permissions, ["storage"]);
   assert.deepEqual(manifest.host_permissions, ["https://cluesbysam.com/*"]);
   assert.deepEqual(manifest.content_scripts[0].js, ["keyboard-core.js", "content.js"]);
   assert.deepEqual(manifest.content_scripts[0].css, ["content.css"]);
