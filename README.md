@@ -18,11 +18,11 @@ When the extension detects a puzzle grid, it shows a persistent **Clues keyboard
 
 The extension puts a yellow inner ring on each card that the current clue references. The reference can be a name or profession. The current card keeps its white-and-blue focus ring. If the clue references its own card, both rings appear.
 
-The `trial/neighbor-rings` branch adds thinner gray-blue rings for spatial references in version 1.0.8, build 9. These rings mark neighbors, corners, named rows and columns, and directional ranges. If a card has both highlights, the gray-blue ring sits inside the yellow ring.
+Version 1.0.8, build 9 adds thinner gray-blue rings for spatial references. These rings mark neighbors, corners, named rows and columns, and directional ranges. If a card has both highlights, the gray-blue ring sits inside the yellow ring.
 
 Supported examples include “neighbors of Alice and Bob,” “Alice’s neighbors,” “my neighbors,” “Row 2,” and “Column B.” Common or shared neighbors highlight only the overlap. “Below Alice and above Bob” highlights cards that satisfy both directions. Left and right references work the same way. “Directly” limits a direction to the adjacent card. “Between Alice and Bob” excludes both endpoints in the same row or column.
 
-The trial recognizes these wording patterns. It does not interpret every possible clue or filter highlighted groups by innocence or guilt.
+The extension recognizes these wording patterns. It does not interpret every possible clue or filter highlighted groups by innocence or guilt.
 
 The `?` panel includes **Reference rings (yellow)** and **Spatial rings (grey)** checkboxes. Both settings start enabled and take effect immediately. Each browser saves its settings locally. The current card keeps its focus ring with either setting disabled.
 
